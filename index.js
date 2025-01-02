@@ -25,6 +25,9 @@ let persons = [
       "number": "39-23-6423122"
     }
 ]
+const cors = require('cors')
+
+app.use(cors())
 app.use(express.static('dist'))
 morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
@@ -59,13 +62,14 @@ app.get('/api/persons/:id', (request, response) => {
 
   app.post('/api/persons', (request, response) => {
     const randId = Math.floor(Math.random()*10000)
-    request.body={
-        "id":`${randId}`,
-        "name":"nepo",
-        "number":"909"
+    console.log(request.body)
+    
+    const person = request.body={
+      "id":`${randId}`,
+      "name":`${request.body.name}`,
+      "number":`${request.body.number}`
 
-    }
-    const person = request.body
+  }
     if(!person.name || !person.number){
         return response.status(400).json({ 
             error: 'content missing' 
