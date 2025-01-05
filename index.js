@@ -71,12 +71,52 @@ app.get('/api/persons/:id', (request, response,next) => {
   })
   .catch(error => next(error))
 })
+app.post('/api/persons', (request, response,next) => {
+  const person1 = request.body
+
+
+  const person = new Person({
+    name: person1.name,
+    number:person1.number,
+  })
+
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
+  .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const {name,number} = request.body
+
+  
+  Person.findByIdAndUpdate(request.params.id,{name,number}, { new: true ,runValidators: true, context: 'query'})
+    .then(updatedPerson => {
+      if(updatedPerson==null){
+        throw new Error("Null");
+        
+      }else{
+        console.log(updatedPerson)
+        response.json(updatedPerson)
+
+      }
+
+    
+    })
+    .catch(error => {console.log("hi")
+      next(error)})
+})
+
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+ 
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  }else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }else if(error.name==="Error"){
+    return response.status(400).send({ error: 'updation on a deleted node' })
+  }
 
   next(error)
 }
@@ -92,37 +132,7 @@ app.use(errorHandler)
     .catch(error => next(error))
   })
 
-  app.post('/api/persons', (request, response) => {
-    const person1 = request.body
-  
-    if (person1.name === undefined) {
-      return response.status(400).json({ error: 'content missing' })
-    }
-  
-    const person = new Person({
-      name: person1.name,
-      number:person1.number,
-    })
-  
-    person.save().then(savedPerson => {
-      response.json(savedPerson)
-    })
-  })
 
-  app.put('/api/persons/:id', (request, response, next) => {
-    const person1 = request.body
-  
-    const person = {
-      name: person1.name,
-      number: person1.number,
-    }
-  
-    Person.findByIdAndUpdate(request.params.id, person, { new: true })
-      .then(updatedPerson => {
-        response.json(updatedPerson)
-      })
-      .catch(error => next(error))
-  })
 
 
   const PORT = process.env.PORT
